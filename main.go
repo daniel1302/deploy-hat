@@ -14,10 +14,50 @@ type InputArgs struct {
 	NewAMI string
 }
 
+type RecoveryAction interface {
+    Recovery()
+}
+
+type ApplyAction interface {
+	Apply()
+}
+
+
+
 func softExit(exitStatus int, message string) {
 	fmt.Println(message)
 	os.Exit(exitStatus)
 }
+
+func getInstancesId(oldAmiID string) {
+
+}
+
+func launchNewInstance(newAmiID string) {
+
+}
+
+func waitUntilReady(instanceID string) {
+
+}
+
+func killInstance(instanceID string) {
+
+}
+
+func detachInstance(instanceId string, asgName string) {
+
+}
+
+func attachInstance(instance string asgName string) {
+
+}
+
+func checkNewAMI(newAmiID string) {
+
+}
+
+
 
 func main() {
 	if len(os.Args) != 3 {
