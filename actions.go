@@ -73,6 +73,12 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
                 Values: []*string{
                     aws.String(pipelineInfo.Input.OldAMI),
                 },
+			},
+			&ec2.Filter{
+                Name: aws.String("instance-state-name"),
+                Values: []*string{
+                    aws.String("running"),
+                },
             },
         },
 	}
@@ -81,7 +87,6 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 	if err != nil {
 		panic(err)
 	}
-
 
 	for _, item := range result.Reservations {
 		fmt.Println(item) 
@@ -108,6 +113,10 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 			SecurityGroupsIds: sgIds,
 			Tags: tags,
 		})
+	}
+
+	if len(pipelineInfo.OldInstances) < 1 {
+		panic("TODO 2")
 	}
 }
 
