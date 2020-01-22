@@ -1,16 +1,18 @@
+SOURCES = $(wildcard src/*.go)
+
 build : dependencies lint compile
 	
 compile :
-	go build -o deploy main.go 
+	go build -o deploy $(SOURCES)
 	
 run :
-	go run main.go
+	go run $(SOURCES)
 
 test : lint compile
 	./deploy --config=./config.yml.dict
 
 lint :
-	golint -set_exit_status main.go
+	golint -set_exit_status $(SOURCES)
 
 dependencies :
 	go get -u golang.org/x/lint/golint
