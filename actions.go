@@ -29,12 +29,12 @@ type ShortInstanceDesc struct {
 }
 
 type PipelineInfo struct {
-	instances []ShortInstanceDesc
+	Input *InputArgs
+	Instances []ShortInstanceDesc
 }
 
 type ListInstancesAction struct {
 	Svc   *ec2.EC2
-	Input *InputArgs
 }
 
 func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
@@ -43,7 +43,7 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
             &ec2.Filter{
                 Name: aws.String("image-id"),
                 Values: []*string{
-                    aws.String(this.Input.OldAMI),
+                    aws.String(pipelineInfo.Input.OldAMI),
                 },
             },
         },
@@ -63,7 +63,7 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 			sgIds = append(sgIds, *sg.GroupId)
 		}
 
-		pipelineInfo.instances = append(pipelineInfo.instances, ShortInstanceDesc{
+		pipelineInfo.Instances = append(pipelineInfo.Instances, ShortInstanceDesc{
 			Id: *instance.InstanceId,
 			InstanceType: *instance.InstanceType,
 			KeyName: *instance.KeyName,
@@ -79,4 +79,5 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 func (this ListInstancesAction) Rollback(info *PipelineInfo) {
 	// Nothing to rollback
 }
+
 

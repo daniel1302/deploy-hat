@@ -17,9 +17,9 @@ func main() {
     )
 
 	svc := ec2.New(sess)
-	input := &InputArgs{"ami-0c2db42c00f8ff366", "ami-0c2db42c00f8ff366"}
-	list := ListInstancesAction{svc, input}
-	pipelineInfo := &PipelineInfo{}
+	inputArgs := &InputArgs{"ami-0c2db42c00f8ff366", "ami-0c2db42c00f8ff366"}
+	list := ListInstancesAction{svc}
+	pipelineInfo := &PipelineInfo{Input: inputArgs}
 
 	_ = err
 	list.Commit(pipelineInfo)
