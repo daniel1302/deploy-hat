@@ -25,15 +25,16 @@ type ShortInstanceDesc struct {
 	KeyName string
 	SubnetId string
 	VpcId string
-	SecurityGroupsIds []string
+	SecurityGroupsIds []*string
 	Tags map[string]string
 }
 
 type PipelineInfo struct {
 	Version string
 	Input *InputArgs
+	ClientIP string
 	OldInstances []ShortInstanceDesc
-	NewInstances []string
+	NewInstances []*string
 }
 
 type InitializePipelineAction struct {
@@ -63,6 +64,13 @@ func (this InitializePipelineAction) Commit(pipelineInfo *PipelineInfo) {
 	}
 	
 	pipelineInfo.Input = &InputArgs{OldAMI, NewAMI}
+	clientIP, err := getClientIP()
+
+	if err != nil {
+		panic("TODO 4")
+	}
+
+	pipelineInfo.ClientIP = clientIP
 }
 
 func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
@@ -89,13 +97,12 @@ func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 	}
 
 	for _, item := range result.Reservations {
-		fmt.Println(item) 
 		instance := item.Instances[0]
 
-		sgIds := []string{}
+		sgIds := []*string{}
 
 		for _, sg := range instance.SecurityGroups {
-			sgIds = append(sgIds, *sg.GroupId)
+			sgIds = append(sgIds, sg.GroupId)
 		}
 
 		tags := map[string]string{}
@@ -126,44 +133,52 @@ func (this ListInstancesAction) Rollback(pipelineInfo *PipelineInfo) {
 
 func (this RunInstancesAction) Commit(pipelineInfo *PipelineInfo) {
 
-	// fmt.Println(pipelineInfo)
+	fmt.Println(pipelineInfo)
 
-	// for _, item := range pipelineInfo.OldInstances {
+	for _, item := range pipelineInfo.OldInstances {
+		oldTags := item.Tags
+		newTags := []*ec2.Tag{}
+		oldTags["Version"] = pipelineInfo.Version
+		
+		for tagKey, tagVal := range oldTags {
+			newTags = append(newTags, &ec2.Tag{Key: aws.String(tagKey), Value: aws.String(tagVal)})
+		}
+
+		input := &ec2.RunInstancesInput{
 
 
-	// 	input := &ec2.RunInstancesInput{
-	// 		ImageId:      aws.String(pipelineInfo.Input.NewAMI),
-	// 		InstanceType: aws.String(item.InstanceType),
-	// 		KeyName:      aws.String(item.KeyName),
-	// 		MaxCount:     aws.Int64(1),
-	// 		MinCount:     aws.Int64(1),
-	// 		SecurityGroupIds: []*string{
-	// 			aws.String(item.SecurityGroupsIds[0]),
-	// 		},
-	// 		SubnetId: aws.String(item.SubnetId),
-	// 		TagSpecifications: []*ec2.TagSpecification{
-	// 			{
-	// 				ResourceType: aws.String("instance"),
-	// 				Tags: []*ec2.Tag{
-	// 					{
-	// 						Key:   aws.String("Name"),
-	// 						Value: aws.String("test-daniel"),
-	// 					},
-						
-	// 				},
-	// 			},
-	// 		},
-	// 	}
-	// 	result, err := this.Svc.RunInstances(input)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	fmt.Println(result)
-	// 	break
-	// }
-	
+			ImageId:      aws.String(pipelineInfo.Input.NewAMI),
+			InstanceType: aws.String(item.InstanceType),
+			KeyName:      aws.String(item.KeyName),
+			MaxCount:     aws.Int64(1),
+			MinCount:     aws.Int64(1),
+			SecurityGroupIds: item.SecurityGroupsIds,
+			SubnetId: aws.String(item.SubnetId),
+			TagSpecifications: []*ec2.TagSpecification{
+				{
+					ResourceType: aws.String("instance"),
+					Tags: newTags,
+				},
+			},
+		}
+		
+		result, err := this.Svc.RunInstances(input)
+		if err != nil {
+			panic(err)
+		}
+		
+		pipelineInfo.NewInstances = append(pipelineInfo.NewInstances, result.Instances[0].InstanceId)
+	}	
 }
 
 func (this RunInstancesAction) Rollback(pipelineInfo *PipelineInfo) {
-	
+	input := &ec2.TerminateInstancesInput{
+		InstanceIds: pipelineInfo.NewInstances,
+	}
+
+	_, err := this.Svc.TerminateInstances(input)
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Println(result)
 }
