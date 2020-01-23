@@ -35,6 +35,7 @@ type PipelineInfo struct {
 	ClientIP string
 	OldInstances []ShortInstanceDesc
 	NewInstances []*string
+	ModifiedSecurityGroups []*string
 }
 
 type InitializePipelineAction struct {
@@ -47,6 +48,14 @@ type ListInstancesAction struct {
 }
 
 type RunInstancesAction struct {
+	Svc   *ec2.EC2
+}
+
+type WaitUntilStatusOkAction struct {
+	Svc   *ec2.EC2
+}
+
+type AuthorizeSecurityGroups struct {
 	Svc   *ec2.EC2
 }
 
@@ -132,9 +141,6 @@ func (this ListInstancesAction) Rollback(pipelineInfo *PipelineInfo) {
 }
 
 func (this RunInstancesAction) Commit(pipelineInfo *PipelineInfo) {
-
-	fmt.Println(pipelineInfo)
-
 	for _, item := range pipelineInfo.OldInstances {
 		oldTags := item.Tags
 		newTags := []*ec2.Tag{}
@@ -181,4 +187,48 @@ func (this RunInstancesAction) Rollback(pipelineInfo *PipelineInfo) {
 		panic(err)
 	}
 	// fmt.Println(result)
+}
+
+
+func (this WaitUntilStatusOkAction) Commit(pipelineInfo *PipelineInfo) {
+
+	input := &ec2.DescribeInstancesInput{
+		InstanceIds: pipelineInfo.NewInstances,
+	}
+
+	err := this.Svc.WaitUntilInstanceRunning(input)
+
+	if err != nil {
+		panic(err)
+	}
+
+	
+}
+
+func (this WaitUntilStatusOkAction) Rollback(pipelineInfo *PipelineInfo) {
+}
+
+func (this AuthorizeSecurityGroups) Commit(pipelineInfo *PipelineInfo) {
+
+	for _, instance := range pipelineInfo.OldInstances {
+		if len(instance.SecurityGroupsIds) < 1 {
+			panic("Instance must have Security Group")
+		}
+
+		isIpAuthorizedStatus, err := isIpAuthorized(this.Svc, *instance.SecurityGroupsIds[0], 80, pipelineInfo.ClientIP)
+		if err != nil {
+			panic("TODo 5")
+		}
+
+		if !isIpAuthorizedStatus {
+			authorizeIp(this.Svc, *instance.SecurityGroupsIds[0], 80, pipelineInfo.ClientIP)
+			pipelineInfo.ModifiedSecurityGroups = append(pipelineInfo.ModifiedSecurityGroups, instance.SecurityGroupsIds[0])
+		}
+	}
+}
+
+func (this AuthorizeSecurityGroups) Rollback(pipelineInfo *PipelineInfo) {
+	for _, sgId := range pipelineInfo.ModifiedSecurityGroups {
+		revokeIp(this.Svc, *sgId, 80, pipelineInfo.ClientIP)
+	}
 }
