@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"errors"
 	"strings"
+	"fmt"
 )
 
 func getClientIP() (string, error) {
@@ -45,4 +46,44 @@ func getClientIP() (string, error) {
 	}
 
 	return "", errors.New("Could not get public IP")
+}
+
+
+func getHttpResponseCode(url string) (int, error) {
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return resp.StatusCode, nil
+}
+
+func isValidRequest(url string, retries uint) (bool, error) {
+
+	statusCodeProp := 0
+	for retries >  0 {
+		retries--
+		statusCode, err := getHttpResponseCode(url)
+		statusCodeProp = statusCode
+
+		fmt.Println("StatusCode: ", statusCode)
+		if err != nil {
+			if retries == 0 {
+				return false, err
+			}
+
+			continue;
+		}
+
+		if statusCode >= 200 && statusCode <= 399{
+			return true, nil
+		}
+		
+		if retries > 0 {
+			time.Sleep(15 * time.Second)
+		}
+	}
+
+	return false, errors.New(fmt.Sprintf("Response code %d. Expected in <200; 399>", statusCodeProp))
 }
