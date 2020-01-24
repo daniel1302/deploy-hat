@@ -16,6 +16,7 @@ lint :
 
 dependencies :
 	go get -u golang.org/x/lint/golint
-	go get -u github.com/awslabs/aws-sdk-go/aws
+	go get -u github.com/aws/aws-sdk-go/aws
 	go get -u github.com/aws/aws-sdk-go/aws/session
 	go get -u github.com/aws/aws-sdk-go/service/ec2
+	go get -u github.com/aws/aws-sdk-go/service/elbv2
