@@ -13,14 +13,14 @@ import (
 func rollback(step int, pipelineInfo *PipelineInfo, actions *[]InfrastructureAction) {
     for step >= 0 {
         (*actions)[step].Rollback(pipelineInfo)
-        fmt.Printf("[%T] Rolling changes back", (*actions)[step])
+        fmt.Printf("[%T] Rolling changes back\n", (*actions)[step])
         step--
     }
 }
 
 func main() {
     if len(os.Args) != 3 {
-        fmt.Printf("[ERROR] Invalid usage. usage: %s OLD_AMI NEW_AMI", os.Args[0])
+        fmt.Printf("[ERROR] Invalid usage. usage: %s OLD_AMI NEW_AMI\n", os.Args[0])
         os.Exit(1)
     }
 
