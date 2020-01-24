@@ -7,6 +7,7 @@ import(
 	"github.com/aws/aws-sdk-go/service/elbv2"
 
 	"fmt"
+	"errors"
 )
 
 // InputArgs is struct to keep input arguments
@@ -16,8 +17,8 @@ type InputArgs struct {
 }
 
 type InfrastructureAction interface {
-    Commit(info *PipelineInfo)
-	Rollback(info *PipelineInfo)
+    Commit(info *PipelineInfo) error
+	Rollback(info *PipelineInfo) error
 }
 
 type ShortInstanceDesc struct {
@@ -93,26 +94,35 @@ type TerminateOldInstancesAction struct {
 
 
 
-func (this InitializePipelineAction) Commit(pipelineInfo *PipelineInfo) {
+func (this InitializePipelineAction) Commit(pipelineInfo *PipelineInfo) error {
 	OldAMI := this.OldAMI
 	NewAMI := this.NewAMI
 
+	if len(OldAMI) < 4|| len(NewAMI) < 4 {
+		return errors.New("Invalid AMI ID.")
+	}
+
 	if OldAMI[:4] != "ami-" || NewAMI[:4] != "ami-" {
-		panic("TODO")	
+		return errors.New("Invalid AMI ID.")
 	}
 
 	if OldAMI == NewAMI {
-		panic("TODO 1")
+		return errors.New("Both new and old AMI ID are the same.")
 	}
-	
+
 	pipelineInfo.Input = &InputArgs{OldAMI, NewAMI}
 	clientIP, err := getClientIP()
 
 	if err != nil {
-		panic("TODO 4")
+		return err
 	}
 
 	pipelineInfo.ClientIP = clientIP
+	return nil
+}
+
+func (this InitializePipelineAction) Rollback(pipelineInfo *PipelineInfo) error {
+	return nil
 }
 
 func (this ListInstancesAction) Commit(pipelineInfo *PipelineInfo) {
