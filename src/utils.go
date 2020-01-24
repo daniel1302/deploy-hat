@@ -11,6 +11,8 @@ import (
 	"fmt"
 )
 
+
+
 func getClientIP() (string, error) {
 	var kindOfValidIP = regexp.MustCompile(`^([1-9][0-9]{0,2})(\.[0-9]{0,3}){3}$`)
 	apiUrls := []string {
@@ -50,7 +52,13 @@ func getClientIP() (string, error) {
 
 
 func getHttpResponseCode(url string) (int, error) {
-	resp, err := http.Get(url)
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Get(url)
 
 	if err != nil {
 		return -1, err
@@ -67,7 +75,6 @@ func isValidRequest(url string, retries uint) (bool, error) {
 		statusCode, err := getHttpResponseCode(url)
 		statusCodeProp = statusCode
 
-		fmt.Println("StatusCode: ", statusCode)
 		if err != nil {
 			if retries == 0 {
 				return false, err
@@ -79,7 +86,7 @@ func isValidRequest(url string, retries uint) (bool, error) {
 		if statusCode >= 200 && statusCode <= 399{
 			return true, nil
 		}
-		
+
 		if retries > 0 {
 			time.Sleep(15 * time.Second)
 		}
