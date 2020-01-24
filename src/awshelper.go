@@ -4,8 +4,9 @@ package main
 import(
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/elbv2"
 
-    "errors"
+	"errors"
 )
 
 func isIpAuthorized(svc *ec2.EC2, sgId string, port int64, ip string) (bool, error) {
@@ -93,4 +94,31 @@ func revokeIp(svc *ec2.EC2, sgId string, port int64, ip string) error {
 	}
 
 	return nil
+}
+
+func findInstancesInTargetGroup(svc *elbv2.ELBV2, tgArn string, instancesId []*string) (bool, error) {
+	targets := []*elbv2.TargetDescription{}
+
+	for _, instanceId := range instancesId {
+		targets = append(targets, &elbv2.TargetDescription{Id: instanceId})
+	}
+
+	input := &elbv2.DescribeTargetHealthInput{
+		TargetGroupArn: aws.String(tgArn),
+		Targets: targets,
+	}
+
+	res, err := svc.DescribeTargetHealth(input)
+
+	if err != nil {
+		return false, err
+	}
+
+	for _, tgHealth := range res.TargetHealthDescriptions {
+		if *tgHealth.TargetHealth.State != "unused" {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
