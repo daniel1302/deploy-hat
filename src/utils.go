@@ -51,7 +51,7 @@ func getClientIP() (string, error) {
 }
 
 
-func getHttpResponseCode(url string) (int, error) {
+func getHTTPResponseCode(url string) (int, error) {
     client := &http.Client{
         CheckRedirect: func(req *http.Request, via []*http.Request) error {
             return http.ErrUseLastResponse
@@ -72,7 +72,7 @@ func isValidRequest(url string, retries uint) (bool, error) {
     statusCodeProp := 0
     for retries >  0 {
         retries--
-        statusCode, err := getHttpResponseCode(url)
+        statusCode, err := getHTTPResponseCode(url)
         statusCodeProp = statusCode
 
         if err != nil {
@@ -92,5 +92,5 @@ func isValidRequest(url string, retries uint) (bool, error) {
         }
     }
 
-    return false, errors.New(fmt.Sprintf("Response code %d. Expected in <200; 399>", statusCodeProp))
+    return false, fmt.Errorf("Response code %d. Expected in <200; 399>", statusCodeProp)
 }

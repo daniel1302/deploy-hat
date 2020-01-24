@@ -96,20 +96,20 @@ func TestInitializePipelineActionDescribeInstances(t *testing.T) {
         OldInstancesIds: []*string{},
         OldInstances: []ShortInstanceDesc{
             {
-                Id: "i-1",
+                ID: "i-1",
                 InstanceType: "t2-micro",
                 KeyName: "prod-bastion-key",
-                SubnetId: "subnet-123a",
-                VpcId: "vpc-prod",
+                SubnetID: "subnet-123a",
+                VpcID: "vpc-prod",
                 SecurityGroupsIds: []*string{ aws.String("sg-123"), aws.String("sg-567") },
                 Tags: map[string]string{ "Name": "web-application-1", "Version": "123" },
             },
             {
-                Id: "i-2",
+                ID: "i-2",
                 InstanceType: "t2-micro",
                 KeyName: "prod-bastion-key",
-                SubnetId: "subnet-123b",
-                VpcId: "vpc-prod",
+                SubnetID: "subnet-123b",
+                VpcID: "vpc-prod",
                 SecurityGroupsIds:  []*string{ aws.String("sg-123"), aws.String("sg-898") },
                 Tags: map[string]string{ "Name": "web-application-2", "Version": "123" },
             },
@@ -121,11 +121,11 @@ func TestInitializePipelineActionDescribeInstances(t *testing.T) {
     }
 
     for idx, instance := range pipelineInfo.OldInstances {
-        assert.Equal(t, instance.Id, expectedPipelineInfo.OldInstances[idx].Id)
+        assert.Equal(t, instance.ID, expectedPipelineInfo.OldInstances[idx].ID)
         assert.Equal(t, instance.InstanceType, expectedPipelineInfo.OldInstances[idx].InstanceType)
         assert.Equal(t, instance.KeyName, expectedPipelineInfo.OldInstances[idx].KeyName)
-        assert.Equal(t, instance.SubnetId, expectedPipelineInfo.OldInstances[idx].SubnetId)
-        assert.Equal(t, instance.VpcId, expectedPipelineInfo.OldInstances[idx].VpcId)
+        assert.Equal(t, instance.SubnetID, expectedPipelineInfo.OldInstances[idx].SubnetID)
+        assert.Equal(t, instance.VpcID, expectedPipelineInfo.OldInstances[idx].VpcID)
         assert.Equal(t, instance.SecurityGroupsIds, expectedPipelineInfo.OldInstances[idx].SecurityGroupsIds)
         assert.Equal(t, instance.Tags, expectedPipelineInfo.OldInstances[idx].Tags)
     }

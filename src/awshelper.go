@@ -9,10 +9,10 @@ import(
 	"errors"
 )
 
-func isIpAuthorized(svc *ec2.EC2, sgId string, port int64, ip string) (bool, error) {
+func isIPAuthorized(svc *ec2.EC2, sgID string, port int64, ip string) (bool, error) {
 	input := &ec2.DescribeSecurityGroupsInput{
 		GroupIds: []*string{
-			aws.String(sgId),
+			aws.String(sgID),
 		},
 	}
 
@@ -22,7 +22,7 @@ func isIpAuthorized(svc *ec2.EC2, sgId string, port int64, ip string) (bool, err
     }
 
 	if len(result.SecurityGroups) < 1 {
-        return false, errors.New("Security group does not exists.")
+        return false, errors.New("Security group does not exists")
     }
 
     ipPermissions := result.SecurityGroups[0].IpPermissions
@@ -43,9 +43,9 @@ func isIpAuthorized(svc *ec2.EC2, sgId string, port int64, ip string) (bool, err
     return false, nil
 }
 
-func authorizeIp(svc *ec2.EC2, sgId string, port int64, ip string) error {
+func authorizeIP(svc *ec2.EC2, sgID string, port int64, ip string) error {
 	input := &ec2.AuthorizeSecurityGroupIngressInput{
-		GroupId: aws.String(sgId),
+		GroupId: aws.String(sgID),
 		IpPermissions: []*ec2.IpPermission{
 			{
 				FromPort:   aws.Int64(port),
@@ -69,10 +69,10 @@ func authorizeIp(svc *ec2.EC2, sgId string, port int64, ip string) error {
 	return nil
 }
 
-func revokeIp(svc *ec2.EC2, sgId string, port int64, ip string) error {
+func revokeIP(svc *ec2.EC2, sgID string, port int64, ip string) error {
 
 	input := &ec2.RevokeSecurityGroupIngressInput{
-		GroupId: aws.String(sgId),
+		GroupId: aws.String(sgID),
 		IpPermissions: []*ec2.IpPermission{
 			{
 				FromPort:   aws.Int64(port),
@@ -96,11 +96,11 @@ func revokeIp(svc *ec2.EC2, sgId string, port int64, ip string) error {
 	return nil
 }
 
-func findInstancesInTargetGroup(svc *elbv2.ELBV2, tgArn string, instancesId []*string) (bool, error) {
+func findInstancesInTargetGroup(svc *elbv2.ELBV2, tgArn string, instancesID []*string) (bool, error) {
 	targets := []*elbv2.TargetDescription{}
 
-	for _, instanceId := range instancesId {
-		targets = append(targets, &elbv2.TargetDescription{Id: instanceId})
+	for _, instanceID := range instancesID {
+		targets = append(targets, &elbv2.TargetDescription{Id: instanceID})
 	}
 
 	input := &elbv2.DescribeTargetHealthInput{

@@ -21,7 +21,7 @@ func TestGetClientIP(t *testing.T) {
 	}
 }
 
-func TestGetHttpResponseCode(t *testing.T) {
+func TestGetHTTPResponseCode(t *testing.T) {
 	pagesTable := []struct{
 		url  string
 		code int
@@ -32,7 +32,7 @@ func TestGetHttpResponseCode(t *testing.T) {
 	}
 
 	for _, page := range pagesTable {
-		if resp, _ := getHttpResponseCode(page.url); resp != page.code {
+		if resp, _ := getHTTPResponseCode(page.url); resp != page.code {
 			t.Errorf("Invalid response code for %s. Expected %d. Got %d.", page.url, page.code, resp)
 		}
 	}
