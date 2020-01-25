@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/elbv2"
-	"fmt"
+    "github.com/aws/aws-sdk-go/service/ec2"
+    "github.com/aws/aws-sdk-go/service/elbv2"
+    "fmt"
     "os"
-	"time"
+    "time"
 )
 
 func rollback(step int, pipelineInfo *PipelineInfo, actions *[]InfrastructureAction) {
@@ -24,30 +24,30 @@ func main() {
         os.Exit(1)
     }
 
-	sess, _ := session.NewSession(&aws.Config{
+    sess, _ := session.NewSession(&aws.Config{
         Region: aws.String("us-east-1")},
     )
     
-	svc := ec2.New(sess)
-	elbv2 := elbv2.New(sess)
-	pipelineInfo := &PipelineInfo{
-		Version: time.Now().Format("20060102_150405"),
-	}
+    svc := ec2.New(sess)
+    elbv2 := elbv2.New(sess)
+    pipelineInfo := &PipelineInfo{
+        Version: time.Now().Format("20060102_150405"),
+    }
 
     actions := []InfrastructureAction{
         InitializePipelineAction{os.Args[1], os.Args[2]},
-    	ListInstancesAction{svc},
-	    FindLoadBalancerAction{elbv2},
-    	RunInstancesAction{svc},
-	    WaitUntilStatusOkAction{svc},
-    	AuthorizeSecurityGroupsAction{svc},
-	    CollectPublicIpsAction{svc},
-    	TestInstancesAction{svc},
-	    RegisterNewInstancesAction{elbv2},
-    	DeregisterOldInstancesAction{elbv2},
-    	WaitForDeregisterAction{elbv2},
-	    TerminateOldInstancesAction{svc},
-	}
+        ListInstancesAction{svc},
+        FindLoadBalancerAction{elbv2},
+        RunInstancesAction{svc},
+        WaitUntilStatusOkAction{svc},
+        AuthorizeSecurityGroupsAction{svc},
+        CollectPublicIpsAction{svc},
+        TestInstancesAction{svc},
+        RegisterNewInstancesAction{elbv2},
+        DeregisterOldInstancesAction{elbv2},
+        WaitForDeregisterAction{elbv2},
+        TerminateOldInstancesAction{svc},
+    }
     
     for idx, action := range actions {
         fmt.Printf("[%T] Executing.\n", action)
