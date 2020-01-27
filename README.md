@@ -5,7 +5,7 @@ Script used to replace current application instances with the new one.
 ### Requirements:
 
 - Application AMI has got opened port 80
-- Currently working application instances are connected to the Application Load FindLoadBalancerAction
+- Currently working application instances are connected to the Application Load Balancer
 
 ### Usage
 
